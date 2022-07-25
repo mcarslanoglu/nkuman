@@ -22,7 +22,7 @@ registered users.**_
 Here's an example screenshot and the corresponding Code Editor JavaScript code:
 ![image](https://user-images.githubusercontent.com/10681552/180725783-841a5834-2425-4ecf-aee0-ab7612eb56b6.png)
 
-## Customize your data sets:
+## How to customize your data sets:
 
 ```javascript
 var defaultCountry = "Turkey"
