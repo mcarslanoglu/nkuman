@@ -19,7 +19,7 @@ registered users.**_
 -   [Earth Engine Homepage](https://earthengine.google.com/)
 -   [Web Code Editor](https://code.earthengine.google.com/)
 
-Here's an example screenshot and the corresponding Code Editor JavaScript code:
+Here's an example screenshot of GUI:
 ![image](https://user-images.githubusercontent.com/10681552/180725783-841a5834-2425-4ecf-aee0-ab7612eb56b6.png)
 
 ## How to customize your data sets:
