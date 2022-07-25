@@ -10,10 +10,6 @@ Sener, M., Arslanoğlu, M.C., 2022. Morphometric Analysis in Google Earth Engine
 Environmental Modelling & Software, 
 */
 
-// 133 WATER RESOURCES AI panel and label styles 
-//ZZZ WETLAND HYDROLOGY ANALYST
-// AOI BORDERS DATA SET
-
 var defaultCountry = "Turkey"
 //var a=0 // logo 404 turkey 632
 var Gaul_0 = ee.FeatureCollection("FAO/GAUL/2015/level0");
