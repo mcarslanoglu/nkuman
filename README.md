@@ -1,4 +1,4 @@
-NKUMAN
+NKU-MAN
 =======================
 
 Python and JavaScript client libraries for calling the Google Earth Engine API.
@@ -14,8 +14,7 @@ will likely need to be updated.**_
     Installation](https://developers.google.com/earth-engine/python_install)
 
 Here's an example screenshot and the corresponding Code Editor JavaScript code:
-
-![Trendy Lights Image](https://raw.github.com/google/earthengine-api/master/trendy-lights.png)
+![image](https://user-images.githubusercontent.com/10681552/180725783-841a5834-2425-4ecf-aee0-ab7612eb56b6.png)
 
 ```javascript
 // Compute the trend of night-time lights.
