@@ -26,7 +26,7 @@ Here's an example screenshot and the corresponding Code Editor JavaScript code:
 
 ```javascript
 var defaultCountry = "Turkey"
-//var a=0 // logo 404 turkey 632
+
 var Gaul_0 = ee.FeatureCollection("FAO/GAUL/2015/level0");
 var Gaul_1 = ee.FeatureCollection("FAO/GAUL_SIMPLIFIED_500m/2015/level1");
 var Gaul_2 = ee.FeatureCollection("FAO/GAUL_SIMPLIFIED_500m/2015/level2");
@@ -137,4 +137,3 @@ var dreLine_items = [
 ```
 
 
-#### svm
