@@ -25,37 +25,6 @@ Here's an example screenshot of GUI:
 ## How to customize your data sets:
 
 ```javascript
-var defaultCountry = "Turkey"
-
-var Gaul_0 = ee.FeatureCollection("FAO/GAUL/2015/level0");
-var Gaul_1 = ee.FeatureCollection("FAO/GAUL_SIMPLIFIED_500m/2015/level1");
-var Gaul_2 = ee.FeatureCollection("FAO/GAUL_SIMPLIFIED_500m/2015/level2");
-var WWF_CONT = ee.FeatureCollection("users/mynet34/1HAVZA/WWF_CONTINENTAL2");
-
-var defaultDEM = ee.Image('JAXA/ALOS/AW3D30/V2_2').select(['AVE_DSM'],['b1']);
-var defaultRiverDataset= 'WWF_FFR';
-var defaultRiverLayer = ee.FeatureCollection("WWF/HydroSHEDS/v1/FreeFlowingRivers");
-
-var table = ee.FeatureCollection("users/mynet34/1HAVZA/MERGED_GRIDCODE");
-var defaultLocalDatasetAOI= table.geometry().bounds();
-
-var landWater = ee.Image('MODIS/MOD44W/MOD44W_005_2000_02_24').select('water_mask')
-var waterMask = landWater.unmask().not().focal_median(1)
-var hansen_2016 = ee.Image('UMD/hansen/global_forest_change_2016_v1_4').select('datamask');
-var hansen_2016_wbodies = hansen_2016.neq(1).eq(0);
-
-var basinDataset_items = [
-  {label:'WWF HYDROSHEDS', value:'WWF_HYDROSHEDS'}, 
-  {label:'USGS Watershed', value:'HUC'},
-  {label:'Local Watershed Dataset', value:'LOCAL_WATERSHED'}, 
-  ]
-
-var riverBasinDataset_items = [
-  {label:'WWF Free Flowing River', value:'WWF_FFR'}, 
-  {label:'Local Data Set', value:'LOCAL'}, 
-  {label:'Other Global Data Sets', value:'DATASET3'}
-  ]
-
 var DEM_items = [
 {label:'VFDEM03',  value:ee.Image("WWF/HydroSHEDS/03VFDEM")},
 {label:'CONDEM03', value:ee.Image("WWF/HydroSHEDS/03CONDEM")}, 
@@ -63,6 +32,9 @@ var DEM_items = [
 {label:'CONDEM30', value:ee.Image("WWF/HydroSHEDS/30CONDEM")},
 {label:'ALOS30',   value:ee.Image('JAXA/ALOS/AW3D30/V2_2').select(['AVE_DSM'],['b1'])},
 {label:'MERIT', value:ee.Image("MERIT/DEM/v1_0_3").select(['dem'],['b1'])},
+//https://gee-community-catalog.org/projects/hand/
+//{label:'hand30_100', value:ee.ImageCollection("users/gena/global-hand/hand-100").mosaic().select(['b1'])},
+{label:'hand30_1000', value:ee.Image("users/gena/GlobalHAND/30m/hand-1000")},
 ]
 
 var ACC_items =  [
@@ -76,20 +48,12 @@ var DIR_items = [
 {label:'DIR30', value:ee.Image("WWF/HydroSHEDS/30DIR")}, 
 ]
 
-var WWF_river_item =[
-{label:'FreeFlowingRivers', value:ee.FeatureCollection("WWF/HydroSHEDS/v1/FreeFlowingRivers")}
-]
 
-var Other_river_item =[
-{label:'HydroRIVERS_v10', value:ee.FeatureCollection('users/gena/HydroRIVERS_v10')},
-//{label:'River 15s Level06', value:ee.FeatureCollection('users/gena/HydroEngine/riv_15s_lev06')},
-//{label:'Natural Earth Rivers', value:ee.FeatureCollection('users/gena/NaturalEarthRivers')},
-]
-
-var river_items =[
-{label:'FreeFlowingRivers', value:ee.FeatureCollection("WWF/HydroSHEDS/v1/FreeFlowingRivers")}, 
-{label:'HUC02', value:ee.FeatureCollection("USGS/WBD/2017/HUC02")}, 
-]
+var basinDataset_items = [
+  {label:'WWF HYDROSHEDS', value:'WWF_HYDROSHEDS'}, 
+  {label:'USGS Watershed', value:'HUC'},
+  {label:'Local Watershed Dataset', value:'LOCAL_WATERSHED'}, 
+  ]
 
 
 var hydroShed_items = [
@@ -117,12 +81,39 @@ var HUC_items = [
 ]
 
 var local_watershed_items = [
+  {label:'DSI', value:ee.FeatureCollection("users/mynet34/1HAVZA/DSI_HYDRO22")}, 
   {label:'Watershed 1 km²', value:ee.FeatureCollection("users/mynet34/1HAVZA/4_CATCHMENT_1")}, 
   {label:'Watershed 10 km²', value:ee.FeatureCollection("users/mynet34/1HAVZA/4_CATCHMENT_10")}, 
   {label:'Watershed 25 km²', value:ee.FeatureCollection("users/mynet34/1HAVZA/4_CATCHMENT_25")}, 
   {label:'Watershed 50 km²', value:ee.FeatureCollection("users/mynet34/1HAVZA/4_CATCHMENT_50")},
   {label:'Watershed 100 km²', value:ee.FeatureCollection("users/mynet34/1HAVZA/4_CATCHMENT_100")},
   ]
+
+
+var riverBasinDataset_items = [
+  {label:'HydroRIVER V1.0', value:'HydroRIVER'}, 
+  {label:'WWF Free Flowing River', value:'WWF_FFR'}, 
+  {label:'Local Data Set', value:'LOCAL'}, 
+  {label:'Other Global Data Sets', value:'DATASET3'}
+  ]
+
+
+var WWF_river_item =[
+{label:'FreeFlowingRivers', value:ee.FeatureCollection("WWF/HydroSHEDS/v1/FreeFlowingRivers")}
+]
+
+var HydroRiver_item =[
+{label:'HydroRIVERS_v10', value:ee.FeatureCollection('users/gena/HydroRIVERS_v10')},
+//{label:'River 15s Level06', value:ee.FeatureCollection('users/gena/HydroEngine/riv_15s_lev06')},
+//{label:'Natural Earth Rivers', value:ee.FeatureCollection('users/gena/NaturalEarthRivers')},
+]
+
+
+var Other_river_item =[
+{label:'HydroRIVERS_v10', value:ee.FeatureCollection('users/gena/HydroRIVERS_v10')},
+//{label:'River 15s Level06', value:ee.FeatureCollection('users/gena/HydroEngine/riv_15s_lev06')},
+//{label:'Natural Earth Rivers', value:ee.FeatureCollection('users/gena/NaturalEarthRivers')},
+]
 
 var dreLine_items = [
   {label:'Dreinage Line 1', value:ee.FeatureCollection("users/mynet34/1HAVZA/2_DRAINAGELINE_1")}, 
