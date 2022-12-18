@@ -25,6 +25,8 @@ Here's an example screenshot of GUI:
 ## How to customize your data sets:
 
 ```javascript
+var defaultCountry = "Turkey"
+
 var DEM_items = [
 {label:'VFDEM03',  value:ee.Image("WWF/HydroSHEDS/03VFDEM")},
 {label:'CONDEM03', value:ee.Image("WWF/HydroSHEDS/03CONDEM")}, 
