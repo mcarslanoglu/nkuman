@@ -26,12 +26,21 @@ var WWF_CONT = ee.FeatureCollection("users/mynet34/1HAVZA/WWF_CONTINENTAL2");
 
 // Default DEM, Basin, River Datasets
 
+//
+var fc= ee.FeatureCollection('USDOS/LSIB/2017');
+
 var defaultDEM = ee.Image('JAXA/ALOS/AW3D30/V2_2').select(['AVE_DSM'],['b1']);
-var defaultRiverDataset= 'WWF_FFR';
-var defaultRiverLayer = ee.FeatureCollection("WWF/HydroSHEDS/v1/FreeFlowingRivers");
+var mask0 = defaultDEM.gte(0)
+defaultDEM = defaultDEM.updateMask(mask0)
+
+//DEM Masking
+//defaultDEM = maskOutside(defaultDEM, fc)
+
+var defaultRiverDataset= 'HydroRIVER';
+var defaultRiverLayer = ee.FeatureCollection('users/gena/HydroRIVERS_v10')
 
 var table = ee.FeatureCollection("users/mynet34/1HAVZA/MERGED_GRIDCODE");
-var defaultLocalDatasetAOI= table.geometry().bounds();
+//var defaultLocalDatasetAOI= table.geometry().bounds();
 var landWater = ee.Image('MODIS/MOD44W/MOD44W_005_2000_02_24').select('water_mask')
 var waterMask = landWater.unmask().not().focal_median(1)
 var hansen_2016 = ee.Image('UMD/hansen/global_forest_change_2016_v1_4').select('datamask');
@@ -41,17 +50,6 @@ var hansen_2016_wbodies = hansen_2016.neq(1).eq(0);
 
 var ssss = ee.FeatureCollection([]);
 /////////////////// result panel 
-var basinDataset_items = [
-  {label:'WWF HYDROSHEDS', value:'WWF_HYDROSHEDS'}, 
-  {label:'USGS Watershed', value:'HUC'},
-  {label:'Local Watershed Dataset', value:'LOCAL_WATERSHED'}, 
-  ]
-
-var riverBasinDataset_items = [
-  {label:'WWF Free Flowing River', value:'WWF_FFR'}, 
-  {label:'Local Data Set', value:'LOCAL'}, 
-  {label:'Other Global Data Sets', value:'DATASET3'}
-  ]
 
 var DEM_items = [
 {label:'VFDEM03',  value:ee.Image("WWF/HydroSHEDS/03VFDEM")},
@@ -60,6 +58,9 @@ var DEM_items = [
 {label:'CONDEM30', value:ee.Image("WWF/HydroSHEDS/30CONDEM")},
 {label:'ALOS30',   value:ee.Image('JAXA/ALOS/AW3D30/V2_2').select(['AVE_DSM'],['b1'])},
 {label:'MERIT', value:ee.Image("MERIT/DEM/v1_0_3").select(['dem'],['b1'])},
+//https://gee-community-catalog.org/projects/hand/
+//{label:'hand30_100', value:ee.ImageCollection("users/gena/global-hand/hand-100").mosaic().select(['b1'])},
+{label:'hand30_1000', value:ee.Image("users/gena/GlobalHAND/30m/hand-1000")},
 ]
 
 var ACC_items =  [
@@ -73,22 +74,12 @@ var DIR_items = [
 {label:'DIR30', value:ee.Image("WWF/HydroSHEDS/30DIR")}, 
 ]
 
-var WWF_river_item =[
-{label:'FreeFlowingRivers', value:ee.FeatureCollection("WWF/HydroSHEDS/v1/FreeFlowingRivers")}
-]
 
-var river1 = ee.FeatureCollection('users/gena/HydroRIVERS_v10') //*
-
-var Other_river_item =[
-{label:'HydroRIVERS_v10', value:ee.FeatureCollection('users/gena/HydroRIVERS_v10')},
-//{label:'River 15s Level06', value:ee.FeatureCollection('users/gena/HydroEngine/riv_15s_lev06')},
-//{label:'Natural Earth Rivers', value:ee.FeatureCollection('users/gena/NaturalEarthRivers')},
-]
-
-var river_items =[
-{label:'FreeFlowingRivers', value:ee.FeatureCollection("WWF/HydroSHEDS/v1/FreeFlowingRivers")}, 
-{label:'HUC02', value:ee.FeatureCollection("USGS/WBD/2017/HUC02")}, 
-]
+var basinDataset_items = [
+  {label:'WWF HYDROSHEDS', value:'WWF_HYDROSHEDS'}, 
+  {label:'USGS Watershed', value:'HUC'},
+  {label:'Local Watershed Dataset', value:'LOCAL_WATERSHED'}, 
+  ]
 
 
 var hydroShed_items = [
@@ -116,12 +107,39 @@ var HUC_items = [
 ]
 
 var local_watershed_items = [
+  {label:'DSI', value:ee.FeatureCollection("users/mynet34/1HAVZA/DSI_HYDRO22")}, 
   {label:'Watershed 1 km²', value:ee.FeatureCollection("users/mynet34/1HAVZA/4_CATCHMENT_1")}, 
   {label:'Watershed 10 km²', value:ee.FeatureCollection("users/mynet34/1HAVZA/4_CATCHMENT_10")}, 
   {label:'Watershed 25 km²', value:ee.FeatureCollection("users/mynet34/1HAVZA/4_CATCHMENT_25")}, 
   {label:'Watershed 50 km²', value:ee.FeatureCollection("users/mynet34/1HAVZA/4_CATCHMENT_50")},
   {label:'Watershed 100 km²', value:ee.FeatureCollection("users/mynet34/1HAVZA/4_CATCHMENT_100")},
   ]
+
+
+var riverBasinDataset_items = [
+  {label:'HydroRIVER V1.0', value:'HydroRIVER'}, 
+  {label:'WWF Free Flowing River', value:'WWF_FFR'}, 
+  {label:'Local Data Set', value:'LOCAL'}, 
+  {label:'Other Global Data Sets', value:'DATASET3'}
+  ]
+
+
+var WWF_river_item =[
+{label:'FreeFlowingRivers', value:ee.FeatureCollection("WWF/HydroSHEDS/v1/FreeFlowingRivers")}
+]
+
+var HydroRiver_item =[
+{label:'HydroRIVERS_v10', value:ee.FeatureCollection('users/gena/HydroRIVERS_v10')},
+//{label:'River 15s Level06', value:ee.FeatureCollection('users/gena/HydroEngine/riv_15s_lev06')},
+//{label:'Natural Earth Rivers', value:ee.FeatureCollection('users/gena/NaturalEarthRivers')},
+]
+
+
+var Other_river_item =[
+{label:'HydroRIVERS_v10', value:ee.FeatureCollection('users/gena/HydroRIVERS_v10')},
+//{label:'River 15s Level06', value:ee.FeatureCollection('users/gena/HydroEngine/riv_15s_lev06')},
+//{label:'Natural Earth Rivers', value:ee.FeatureCollection('users/gena/NaturalEarthRivers')},
+]
 
 var dreLine_items = [
   {label:'Dreinage Line 1', value:ee.FeatureCollection("users/mynet34/1HAVZA/2_DRAINAGELINE_1")}, 
@@ -254,6 +272,7 @@ var download_link
 var opacity1 =0.2
 var opacity2 =0.8
 var opacity3 =0.6
+var aoi_kml_url
 
 //
 var perimeter
@@ -261,7 +280,7 @@ var area_km
 var basinRelief
 var crs1 = 'EPSG:4326'
 var elevGraphscale = 100
-var demScale = 100
+var demScale = 30
 
 var DEM_MAP_LAYER=ui.Map.Layer(null, null, null, false); //0
 var DEM_SLOPE_LAYER=ui.Map.Layer(null, null, null, false); //0
@@ -437,6 +456,12 @@ resultPanel.add(resultPanelHeadPanel)
 resultPanel.add(resultPanelDetailsPanel)
 
   //mainPanel.add(ui.Label('MainPanel'))
+
+resultPanelDetailsPanel.widgets().set(widgetNumber, ui.Label({
+  value: 'Please Wait ...',
+  style: detailsPanelDStyle
+}));
+    
 
 var logo_image = ee.Image("users/mynet34/1HAVZA/nku4");
 
@@ -669,8 +694,14 @@ continentNames.evaluate(function(items){
   admin0Select.setPlaceholder('Select a country')
   })
 
+// Keep them disabled. We will add items later
+var admin0Select = ui.Select({
+placeholder: 'please wait..',
+  }).setDisabled(true)
+
 var admin0Names = Gaul_0.aggregate_array('ADM0_NAME').sort().distinct()
 // Fetch the value using evaluate() to not block the UI
+
 admin0Names.evaluate(function(items){
   admin0Select.items().reset(items)
   // Now that we have items, enable the menu
@@ -681,21 +712,13 @@ admin0Names.evaluate(function(items){
 
 // Define 3 dropdowns for admin0, admin1 and admin2 names
 
-// Keep them disabled. We will add items later
-var admin0Select = ui.Select({
-placeholder: 'please wait..',
-  }).setDisabled(true)
-  
+
 var admin1Select = ui.Select({
 placeholder: 'select a country first',
   }).setDisabled(true)
   
 var admin2Select = ui.Select({
   placeholder: 'select a state or province first',
-}).setDisabled(true)
-
-var admin3Select = ui.Select({
-  placeholder: 'Select a basin level...',
 }).setDisabled(true)
 
 var continentSelect = ui.Select({
@@ -744,6 +767,11 @@ style: {
   })
 
 ////////////////// SUPPORTED DATA SET UI.SELECT ITEMS
+
+var slopeCheckbox = ui.Checkbox("Slope");
+var aspectCheckbox = ui.Checkbox("Aspect");
+var isolinesCheckbox = ui.Checkbox("Isolines");
+
 var activeDEM = 'Active DEM Layer : ALOS30'
 mainSubPanel_bottom_bar_label2.setValue(activeDEM)
 
@@ -752,14 +780,22 @@ mainSubPanel_bottom_bar_label3.setValue(activeRiver)
 
 var supportedDEMSelect = ui.Select({
   placeholder: 'Please select a DEM raster',
-  items: DEM_items,
-  onChange: function(value) {
+  items: DEM_items
+});
+
+var label = 'ALOS30'
+var resultSS = findObjectByKey(DEM_items, 'label', label);
+supportedDEMSelect.setValue(resultSS.value)
+
+supportedDEMSelect.onChange(function(value, widget) {
     //print(value)
     var result = findObjectByKey(DEM_items, 'value', value);
     //mainMap.layers().remove(mainMap.layers().get(0));
     result=result.label
     //print(result)
-    value = value.updateMask(hansen_2016_wbodies)
+    //value = value.updateMask(hansen_2016_wbodies)
+    var mask0 = value.gte(0)
+    value = value.updateMask(mask0)
     activeBorder2 = 'Active DEM : ' + result
     mainSubPanel_bottom_bar_label2.setValue(activeBorder2)
     //mainMap.addLayer(value,visDEM, result);
@@ -767,44 +803,82 @@ var supportedDEMSelect = ui.Select({
     elevImg=value
     DEM_MAP_LAYER = ui.Map.Layer(value, visDEM, result);
     mainMap.layers().set(0, DEM_MAP_LAYER);
-
-    // Calculates slope and aspect in degrees from a terrain DEM. 
-    var slope_3 = ee.Terrain.slope(value)//.clip(gravatai);   
-    var aspect =  ee.Terrain.aspect(value)
-    DEM_SLOPE_LAYER =  ui.Map.Layer(slope_3, {palette: paletteDEM, min: 0, max: 90}, 'Slope', true)
-    DEM_ASPECT_LAYER =ui.Map.Layer(aspect, {palette: paletteDEM, min: 0, max: 360}, 'Aspect', true)
-    mainMap.layers().set(1, DEM_SLOPE_LAYER);
-    mainMap.layers().set(2, DEM_ASPECT_LAYER);    
-    
-    //FOR ISOLINES
-    var minMax1 = value.reduceRegion({ 
-    reducer: ee.Reducer.percentile([2, 98]), 
-    //geometry: Map.getBounds(true), 
-    geometry: Map.getBounds(true), 
-    scale: Map.getScale() })
-    
-    minMax1.evaluate(function(minMax) {
-      //print(minMax)
-    
-      var image = value.resample('bicubic').convolve(ee.Kernel.gaussian(3, 2))
-      var levels = ee.List.sequence(minMax.b1_p2, minMax.b1_p98, (minMax.b1_p98 - minMax.b1_p2) / 20)
-      var isolines = getIsolines(image, levels)
-      //mainMap.addLayer(ee.Terrain.hillshade(image.multiply(50), 315, 25), {min: -100, max: 350}, 'hillshade', true, 0.25)
-      
-      //mainMap.addLayer(ee.Image(0), { palette: ['000000'] }, 'black', true, 0.75)
-      
-      DEM_ISOLINES_LAYER =  ui.Map.Layer(isolines.mosaic(), {palette: paletteISO, min: minMax.b1_p2, max: minMax.b1_p98}, 'Isolines', true, 1)
-      mainMap.layers().set(3, DEM_ISOLINES_LAYER); 
-      //var levels2 = ee.List.sequence(minMax.b1_p2, minMax.b1_p98, (minMax.b1_p98 - minMax.b1_p2) / 5)
-      //var isolines2 = getIsolines(image, levels2)
-      //mainMap.addLayer(isolines2.mosaic().focal_max(1), {palette: paletteISO, min: minMax.b1_p2, max: minMax.b1_p98}, 'isolines (thick)', true, 0.75)
-    })
     //print(mainMap.layers())
+  })
+
+
+
+    
+
+slopeCheckbox.onChange(function(isChecked) {
+if (isChecked) {
+      var slope_3 = ee.Terrain.slope(supportedDEMSelect.getValue())//.clip(gravatai); 
+      DEM_SLOPE_LAYER =  ui.Map.Layer(slope_3, {palette: paletteDEM, min: 0, max: 90}, 'Slope', true)
+      mainMap.layers().set(1, DEM_SLOPE_LAYER);
+  } else
+  {
+      DEM_SLOPE_LAYER = ui.Map.Layer(null, null,null, false);
+      //mainMap.layers().set(6, ADM0_LAYER);
+      mainMap.layers().set(1, DEM_SLOPE_LAYER);
   }
 });
 
+aspectCheckbox.onChange(function(isChecked) {
+if (isChecked) {
+      var aspect =  ee.Terrain.aspect(supportedDEMSelect.getValue())
+      DEM_ASPECT_LAYER =ui.Map.Layer(aspect, {palette: paletteDEM, min: 0, max: 360}, 'Aspect', true)
+      mainMap.layers().set(2, DEM_ASPECT_LAYER);  
+  } else
+  {
+      DEM_ASPECT_LAYER = ui.Map.Layer(null, null,null, false);
+      //mainMap.layers().set(6, ADM0_LAYER);
+      mainMap.layers().set(2, DEM_ASPECT_LAYER);
+  }
+});
+// Calculates slope and aspect in degrees from a terrain DEM. 
+
+isolinesCheckbox.onChange(function(isChecked) {
+if (isChecked) {
+//FOR ISOLINES
+var minMax1 = supportedDEMSelect.getValue().reduceRegion({ 
+reducer: ee.Reducer.percentile([2, 98]), 
+//geometry: Map.getBounds(true), 
+geometry: Map.getBounds(true), 
+scale: Map.getScale() })
+
+minMax1.evaluate(function(minMax) {
+  //print(minMax)
+
+  var image = supportedDEMSelect.getValue().resample('bicubic').convolve(ee.Kernel.gaussian(3, 2))
+  var levels = ee.List.sequence(minMax.b1_p2, minMax.b1_p98, (minMax.b1_p98 - minMax.b1_p2) / 20)
+  var isolines = getIsolines(image, levels)
+  //mainMap.addLayer(ee.Terrain.hillshade(image.multiply(50), 315, 25), {min: -100, max: 350}, 'hillshade', true, 0.25)
+  
+  //mainMap.addLayer(ee.Image(0), { palette: ['000000'] }, 'black', true, 0.75)
+  
+  DEM_ISOLINES_LAYER =  ui.Map.Layer(isolines.mosaic(), {palette: paletteISO, min: minMax.b1_p2, max: minMax.b1_p98}, 'Isolines', true, 1)
+  mainMap.layers().set(3, DEM_ISOLINES_LAYER); 
+  //var levels2 = ee.List.sequence(minMax.b1_p2, minMax.b1_p98, (minMax.b1_p98 - minMax.b1_p2) / 5)
+  //var isolines2 = getIsolines(image, levels2)
+  //mainMap.addLayer(isolines2.mosaic().focal_max(1), {palette: paletteISO, min: minMax.b1_p2, max: minMax.b1_p98}, 'isolines (thick)', true, 0.75)
+})
+
+  } else
+  {
+      DEM_ISOLINES_LAYER = ui.Map.Layer(null, null,null, false);
+      //mainMap.layers().set(6, ADM0_LAYER);
+      mainMap.layers().set(3, DEM_ISOLINES_LAYER);
+  }
+});    
+
+    
+
+
+
+
+
 var supportedACCSelect = ui.Select({
-  placeholder: 'Please select a ACC raster',
+  placeholder: 'Please select a Flow Accumulation raster',
   items: ACC_items,
   onChange: function(value) {
     var result = findObjectByKey(ACC_items, 'value', value);
@@ -817,7 +891,7 @@ var supportedACCSelect = ui.Select({
 });
 
 var supportedDIRSelect = ui.Select({
-  placeholder: 'Please select a DIR raster',
+  placeholder: 'Please select a Flow Direction raster',
   items: DIR_items,
   onChange: function(value) {
     var result = findObjectByKey(DIR_items, 'value', value);
@@ -844,6 +918,9 @@ supportedDataPanel.add(ui.Label({
 supportedDataPanel.add(supportedDEMSelect)
 supportedDataPanel.add(supportedACCSelect)
 supportedDataPanel.add(supportedDIRSelect)
+supportedDataPanel.add(slopeCheckbox)
+supportedDataPanel.add(aspectCheckbox)
+supportedDataPanel.add(isolinesCheckbox)
 
 //////////////////////////////////////////////////////////////
 var catchmentPanel = ui.Panel({
@@ -865,15 +942,34 @@ catchmentPanel.add(ui.Label({
     margin: '3px 4px 2px 4px'}
   }))
 
-  
+
+var basinDataset_select = ui.Select({
+  items: basinDataset_items})
+
+var strBasinDatasetDefault = ee.String('WWF_HYDROSHEDS') 
+
+strBasinDatasetDefault.evaluate(function(result){
+    basinDataset_select.setValue(result)
+    });
+                          
 var basinSelect = ui.Select({
 placeholder: 'Please select a watershed...',
   }).setDisabled(false)
 
 
-var basinDataset_select = ui.Select({
-  items: basinDataset_items})
 
+// for riverspanel default settings
+
+var riverDataset_select = ui.Select({
+  items: riverBasinDataset_items,
+  placeholder: 'Select River Dataset '
+})
+
+var dreLine_select = ui.Select({
+placeholder: 'Please select a Dreinage Layer...',
+  }).setDisabled(false)
+  
+  
 //////////      basinDataset_select.items().reset(basinDataset_items)  
 basinDataset_select.onChange(function(value, widget) {
   basinSelect.items().reset()
@@ -885,8 +981,9 @@ basinDataset_select.onChange(function(value, widget) {
 
   if (value=== 'LOCAL_WATERSHED'){
   basinSelect.items().reset(local_watershed_items)
-  drawBoundsAOI= defaultLocalDatasetAOI
-  mainMap.centerObject(drawBoundsAOI)  
+  // dsi havzalar icin eklendi
+  //drawBoundsAOI= defaultLocalDatasetAOI
+  //mainMap.centerObject(drawBoundsAOI)  
   resetUiSelects2()
   ADM0_LAYER = ui.Map.Layer(drawBoundsAOI, {color: 'red'},'Local Dataset Borders',true,0.2);
   mainMap.layers().set(6, ADM0_LAYER);
@@ -918,54 +1015,53 @@ basinSelect.onChange(function(value, widget) {
   
     
 
-if (basinDataset_select.getValue() === 'WWF_HYDROSHEDS'){
-    var result = findObjectByKey(hydroShed_items, 'value', value);
-    result=result.label
-    
-
-    if (result === 'Level 1' || result === 'Level 2' || result === 'Level 3' || result === 'Level 4' || result === 'Level 5') {
-      elevGraphscale = 100
-      demScale = 100
+    if (basinDataset_select.getValue() === 'WWF_HYDROSHEDS'){
+      var result = findObjectByKey(hydroShed_items, 'value', value);
+      result=result.label
       
-          print('basinSelect.onChange :', result)
-    }
-    
-    else
-    {
-      elevGraphscale = 30
-      demScale = 30      
-      
-    }
-    
-    activeBorder1 = 'Active AOI Border: WWF_HYDROSHEDS, ' + result
-    mainSubPanel_bottom_bar_label1.setValue(activeBorder1)
-    value=value.filterBounds(drawBoundsAOI)
-    
-    //var filtered0 =value.geometry().simplify(10000)
-    //var filtered1 = ee.Feature(filtered0)
-    drawBoundsBasin=value.geometry()
-      //Map.addLayer(drawPolygonEdges(value), {palette: 'FF0000'}, 'edges');
-    BASIN_LAYER = ui.Map.Layer(value.style(transparentStyle), {}, result,true, opacity2);
-    mainMap.centerObject(value) 
-    }
-    
-if (basinDataset_select.getValue() === 'LOCAL_WATERSHED'){
-
-    var result = findObjectByKey(local_watershed_items, 'value', value);
-    result=result.label
+  
+      if (result === 'Level 1' || result === 'Level 2' || result === 'Level 3' || result === 'Level 4' || result === 'Level 5') {
+        elevGraphscale = 100
+        demScale = 100
         
-    activeBorder1 = 'Active AOI Border: LOCAL_WATERSHED, ' + result
-    mainSubPanel_bottom_bar_label1.setValue(activeBorder1)
+            //print('basinSelect.onChange :', result)
+      }
+      
+      else
+      {
+        elevGraphscale = 30
+        demScale = 30      
+      }
+      
+      activeBorder1 = 'Active AOI Border: WWF_HYDROSHEDS, ' + result
+      mainSubPanel_bottom_bar_label1.setValue(activeBorder1)
+      value=value.filterBounds(drawBoundsAOI)
+      
+      //var filtered0 =value.geometry().simplify(10000)
+      //var filtered1 = ee.Feature(filtered0)
+      drawBoundsBasin=value.geometry()
+        //Map.addLayer(drawPolygonEdges(value), {palette: 'FF0000'}, 'edges');
+      BASIN_LAYER = ui.Map.Layer(value.style(transparentStyle), {}, result,true, opacity2);
+      mainMap.centerObject(value) 
+    }
     
-    value=value.filterBounds(drawBoundsAOI)
+    if (basinDataset_select.getValue() === 'LOCAL_WATERSHED'){
 
-    BASIN_LAYER = ui.Map.Layer(value.style(transparentStyle), {}, result);
-    mainMap.centerObject(value) 
-}    
+      var result = findObjectByKey(local_watershed_items, 'value', value);
+      result=result.label
+          
+      activeBorder1 = 'Active AOI Border: LOCAL_WATERSHED, ' + result
+      mainSubPanel_bottom_bar_label1.setValue(activeBorder1)
+      
+      value=value.filterBounds(drawBoundsAOI)
+  
+      BASIN_LAYER = ui.Map.Layer(value.style(transparentStyle), {}, result);
+      mainMap.centerObject(value) 
+    }    
 
-if (basinDataset_select.getValue() === 'HUC'){
-
-admin0Select.setValue("United States of America");  // Set a default value.
+    if (basinDataset_select.getValue() === 'HUC'){
+    
+    admin0Select.setValue("United States of America");  // Set a default value.
 
      var result = findObjectByKey(HUC_items, 'value', value);
      result=result.label
@@ -1002,17 +1098,148 @@ admin0Select.setValue("United States of America");  // Set a default value.
   
     }) //basinselect.onchange
 
-
-////////////////// GETRIVERS PANEL ////////////////////////////////////////////////////////////
-var riverDataset_select = ui.Select({
+//
+var riverDataset_select0 = ui.Select({
   items: riverBasinDataset_items,
   placeholder: 'Select River Dataset '
 })
 
+var dreLine_select0 = ui.Select({
+placeholder: 'Please select a Dreinage Layer...',
+  }).setDisabled(false)
+  
+riverDataset_select0.onChange(function(value, widget) {
+
+  dreLine_select0.items().reset()
+  dreLine_select0.setValue(null, false)
+
+//print(riverDataset_select0.getValue())
+  if (riverDataset_select0.getValue() === 'WWF_FFR'){
+    dreLine_select0.items().reset(WWF_river_item)
+    
+    var label = 'FreeFlowingRivers'
+    var resultSS = findObjectByKey(WWF_river_item, 'label', label);
+    dreLine_select0.setValue(resultSS.value)
+
+    if (drawBoundsBasin === null) {
+          //print('drawBoundsBasin is null')
+          drawBoundsBasin=drawBoundsAOI }
+  }
+  
+
+  if (riverDataset_select0.getValue() === 'HydroRIVER'){
+    dreLine_select0.items().reset(HydroRiver_item)
+    
+    var label = 'HydroRIVERS_v10'
+    var resultSS = findObjectByKey(HydroRiver_item, 'label', label);
+    
+    //print(resultSS)
+    dreLine_select0.setValue(resultSS.value)
+
+    if (drawBoundsBasin === null) {
+          //print('drawBoundsBasin is null')
+          drawBoundsBasin=drawBoundsAOI }
+  }
+  
+  if (drawBoundsAOI=== null) {
+    //print('drawBoundsAOI is null')
+  }
+  
+  if (riverDataset_select0.getValue() === 'LOCAL'){
+    dreLine_select0.items().reset(dreLine_items)
+    //drawBoundsAOI= defaultLocalDatasetAOI
+    mainMap.centerObject(drawBoundsAOI)
+    ADM0_LAYER = ui.Map.Layer(drawBoundsAOI, {color: 'red'},'Local Dataset Borders',true,0.2);
+    mainMap.layers().set(6, ADM0_LAYER);
+    resetUiSelects2()
+    
+  }
+  
+  
+  if (riverDataset_select0.getValue() === 'DATASET3'){
+    dreLine_select0.items().reset(HydroRiver_item)
+  }
+  
+riverDataset_select.setValue(riverDataset_select0.getValue())
+//dreLine_select.setValue(dreLine_select0.getValue())
+
+})
+
+dreLine_select0.onChange(function(value, widget) {
+  
+  //print(riverDataset_select0.getValue())
+  SELECTED_RIVER_LAYER =ui.Map.Layer(null, null, null,false);
+  SELECTED_SEGMENT_LAYER =ui.Map.Layer(null, null, null,false);
+  SELECTED_PROFILE_SEGMENT_LAYER=ui.Map.Layer(null, null, null,false);
+  mainMap.layers().set(13, SELECTED_RIVER_LAYER);
+  mainMap.layers().set(14, SELECTED_SEGMENT_LAYER);
+  mainMap.layers().set(15, SELECTED_PROFILE_SEGMENT_LAYER);
+  if (riverDataset_select0.getValue() === 'HydroRIVER'){ 
+  var result = findObjectByKey(HydroRiver_item , 'value', value);
+  }
+  
+  if (riverDataset_select0.getValue() === 'WWF_FFR'){ 
+  var result = findObjectByKey(WWF_river_item, 'value', value);
+  }
+  
+  if (riverDataset_select0.getValue() === 'LOCAL'){ 
+  var result = findObjectByKey(dreLine_items, 'value', value);
+  dreLine_select.setValue(value)
+  }
+  
+  if (riverDataset_select0.getValue() === 'DATASET3'){ 
+  var result = findObjectByKey(Other_river_item, 'value', value);
+  }
+  
+  activeRiverLayer=value
+  result=result.label
+  
+  activeBorder3 = 'Active River Layer : ' + result
+  mainSubPanel_bottom_bar_label3.setValue(activeBorder3)
+  
+  if (drawBoundsBasin == null) {
+    //print('drawBoundsBasin is null - dreLine_select')
+    drawBoundsBasin=drawBoundsAOI
+  }
+  
+  if (drawBoundsAOI=== null) {
+      //print('drawBoundsAOI is null -- dreLine_select')
+  }
+  
+  activeRiverLayer=value.filterBounds(drawBoundsBasin)
+  
+    RIVER_LAYER = ui.Map.Layer(activeRiverLayer, {}, result);
+    mainMap.layers().set(12, RIVER_LAYER);
+    
+    if (riverDataset_select0.getValue() === 'WWF_FFR' || riverDataset_select0.getValue() === 'HydroRIVER'|| riverDataset_select0.getValue() === 'DATASET3') {
+    var properties1 = ['LENGTH_KM'];
+    }
+    if (riverDataset_select0.getValue() === 'LOCAL') {
+    var properties1 = ['Shape_Leng'];
+    }        
+  //dreLine_select.setValue(dreLine_select0.getValue())
+})
+
+
+
+
+////////////////// GETRIVERS PANEL ////////////////////////////////////////////////////////////
 riverDataset_select.onChange(function(value, widget) {
 
   dreLine_select.items().reset()
   dreLine_select.setValue(null, false)
+  
+  if (riverDataset_select.getValue() === 'HydroRIVER'){
+    dreLine_select.items().reset(HydroRiver_item)
+    
+    var label = 'HydroRIVERS_v10'
+    var resultSS = findObjectByKey(HydroRiver_item, 'label', label);
+    dreLine_select.setValue(resultSS.value)
+
+    if (drawBoundsBasin === null) {
+          //print('drawBoundsBasin is null')
+          drawBoundsBasin=drawBoundsAOI }
+  }
 
   if (riverDataset_select.getValue() === 'WWF_FFR'){
     dreLine_select.items().reset(WWF_river_item)
@@ -1021,9 +1248,9 @@ riverDataset_select.onChange(function(value, widget) {
     var resultSS = findObjectByKey(WWF_river_item, 'label', label);
     dreLine_select.setValue(resultSS.value)
 
-  if (drawBoundsBasin === null) {
-        //print('drawBoundsBasin is null')
-        drawBoundsBasin=drawBoundsAOI }
+    if (drawBoundsBasin === null) {
+          //print('drawBoundsBasin is null')
+          drawBoundsBasin=drawBoundsAOI }
   }
   
   if (drawBoundsAOI=== null) {
@@ -1032,7 +1259,7 @@ riverDataset_select.onChange(function(value, widget) {
   
   if (riverDataset_select.getValue() === 'LOCAL'){
     dreLine_select.items().reset(dreLine_items)
-    drawBoundsAOI= defaultLocalDatasetAOI
+    //drawBoundsAOI= defaultLocalDatasetAOI
     mainMap.centerObject(drawBoundsAOI)
     ADM0_LAYER = ui.Map.Layer(drawBoundsAOI, {color: 'red'},'Local Dataset Borders',true,0.2);
     mainMap.layers().set(6, ADM0_LAYER);
@@ -1043,12 +1270,65 @@ riverDataset_select.onChange(function(value, widget) {
   if (riverDataset_select.getValue() === 'DATASET3'){
     dreLine_select.items().reset(Other_river_item)
   }
+  
+  if (dreLine_select.getValue() === null){
+    print('NULLLLLLLLLLLLLL')
+  }
 })
 
+dreLine_select.onChange(function(value, widget) {
+  
+  //!=        
+      SELECTED_RIVER_LAYER =ui.Map.Layer(null, null, null,false);
+      SELECTED_SEGMENT_LAYER =ui.Map.Layer(null, null, null,false);
+      SELECTED_PROFILE_SEGMENT_LAYER=ui.Map.Layer(null, null, null,false);
+      mainMap.layers().set(13, SELECTED_RIVER_LAYER);
+      mainMap.layers().set(14, SELECTED_SEGMENT_LAYER);
+      mainMap.layers().set(15, SELECTED_PROFILE_SEGMENT_LAYER);
+      if (riverDataset_select.getValue() === 'HydroRIVER'){ 
+      var result = findObjectByKey(HydroRiver_item, 'value', value);
+      }
+      
+      if (riverDataset_select.getValue() === 'WWF_FFR'){ 
+      var result = findObjectByKey(WWF_river_item, 'value', value);
+      }
+      
+      if (riverDataset_select.getValue() === 'LOCAL'){ 
+      var result = findObjectByKey(dreLine_items, 'value', value);
+      }
+      
+      if (riverDataset_select.getValue() === 'DATASET3'){ 
+      var result = findObjectByKey(Other_river_item, 'value', value);
+      }
+    
+      activeRiverLayer=value
+      result=result.label
+      
+      activeBorder3 = 'Active River Layer : ' + result
+      mainSubPanel_bottom_bar_label3.setValue(activeBorder3)
+      
+      if (drawBoundsBasin == null) {
+        //print('drawBoundsBasin is null - dreLine_select')
+        drawBoundsBasin=drawBoundsAOI
+      }
+      
+      if (drawBoundsAOI=== null) {
+          //print('drawBoundsAOI is null -- dreLine_select')
+      }
+      
+      activeRiverLayer=value.filterBounds(drawBoundsBasin)
+      
+        RIVER_LAYER = ui.Map.Layer(activeRiverLayer, {}, result);
+        mainMap.layers().set(12, RIVER_LAYER);
+        
+        if (riverDataset_select.getValue() === 'WWF_FFR' || riverDataset_select.getValue() === 'DATASET3' || riverDataset_select.getValue() === 'HydroRIVER') {
+        var properties1 = ['LENGTH_KM'];
+        }
+        if (riverDataset_select.getValue() === 'LOCAL') {
+        var properties1 = ['Shape_Leng'];
+        }                
+})
 
-var dreLine_select = ui.Select({
-placeholder: 'Please select a Dreinage Layer...',
-  }).setDisabled(false)
   
 getRiverDataPanel.add(ui.Label({
     value: 'Select a River Dataset and Level, \nThen Click on Select and Activate River and Calculate Parameters Button',
@@ -1137,6 +1417,8 @@ label: 'Select Watershed and Activate Inspector for Calculating Characteristics'
 
 catchmentPanel.add(basinDataset_select)
 catchmentPanel.add(basinSelect)
+catchmentPanel.add(riverDataset_select0)
+catchmentPanel.add(dreLine_select0)
 catchmentPanel.add(basinInspectButton)
 //getRiverDataPanel.add(riverTraceButton)
 
@@ -1157,50 +1439,7 @@ mainMap.add(resultPanel)
 //resultPanel.style().set('shown', false)
 
 
-dreLine_select.onChange(function(value, widget) {
-  
-  if (riverDataset_select.getValue() === 'WWF_FFR'){ 
-  var result = findObjectByKey(WWF_river_item, 'value', value);
-  }
-  
-  if (riverDataset_select.getValue() === 'LOCAL'){ 
-  var result = findObjectByKey(dreLine_items, 'value', value);
-  }
-  
-  if (riverDataset_select.getValue() === 'DATASET3'){ 
-  var result = findObjectByKey(Other_river_item, 'value', value);
-  }
 
-  activeRiverLayer=value
-  result=result.label
-  
-  activeBorder3 = 'Active River Layer : ' + result
-  mainSubPanel_bottom_bar_label3.setValue(activeBorder3)
-  
-  if (drawBoundsBasin == null) {
-    //print('drawBoundsBasin is null - dreLine_select')
-    drawBoundsBasin=drawBoundsAOI
-  }
-  
-  if (drawBoundsAOI=== null) {
-      //print('drawBoundsAOI is null -- dreLine_select')
-  }
-  
-  activeRiverLayer=value.filterBounds(drawBoundsBasin)
-  
-    RIVER_LAYER = ui.Map.Layer(activeRiverLayer, {}, result);
-    mainMap.layers().set(12, RIVER_LAYER);
-    
-    if (riverDataset_select.getValue() === 'WWF_FFR' || riverDataset_select.getValue() === 'DATASET3') {
-    var properties1 = ['LENGTH_KM'];
-    }
-    if (riverDataset_select.getValue() === 'LOCAL') {
-    var properties1 = ['Shape_Leng'];
-    }                
-                                
-
-    
-})
 
 ////////////////////////////////////////// basininspectButton.onclick function
 basinInspectButton.onClick(function() {
@@ -1252,7 +1491,6 @@ basinInspectButton.onClick(function() {
     //detailsButton.setDisabled(false)
     //detailsButtonClick()
     
-    
         mainMap.onClick(function (location) {
           
         resultPanelDetailsPanel.clear()
@@ -1284,8 +1522,8 @@ basinInspectButton.onClick(function() {
             selectedBasinFlag =true
             //var clicked_dreinage = selected_WS_Dreinage.filterBounds(clicked_point);
             clicked_basin = ee.Feature(clicked_basin_fc.first());
-            print(clicked_basin)
-            print ('AAAAAAAAAAAAAAAAA',clicked_basin.get('SUB_AREA'))   
+            //print(clicked_basin)
+            //print ('BASIN AREA FROM FEATURE TEST :',clicked_basin.get('SUB_AREA'))   
             //local watersheds Shape_Area (Float)	Shape_Leng (Float)
             
             SELECTED_BASIN_LAYER = ui.Map.Layer(clicked_basin, {}, 'Selected Basin',true, opacity2);
@@ -1308,40 +1546,55 @@ basinInspectButton.onClick(function() {
             }
             else
             {            
-            activeRiverLayer= dreLine_select.getValue().filterBounds(drawBoundsBasin)
+            activeRiverLayer= dreLine_select0.getValue().filterBounds(drawBoundsBasin)
             }
             //print('RIVER_LAYERRRR',activeRiverLayer)
 
-             if (riverDataset_select.getValue() === null || riverDataset_select.getValue() === 'WWF_FFR') {
-                riverDataset_select.setValue('WWF_FFR')
-                var label = 'FreeFlowingRivers'
-                var resultSS = findObjectByKey(WWF_river_item, 'label', label);
-                dreLine_select.setValue(resultSS.value)
+
+             if (riverDataset_select0.getValue() === null || riverDataset_select0.getValue() === 'HydroRIVER') {
+                riverDataset_select0.setValue('HydroRIVER')
+                var label = 'HydroRIVERS_v10'
+                var resultSS = findObjectByKey(HydroRiver_item, 'label', label);
+                dreLine_select0.setValue(resultSS.value)
                 var properties1 = ['LENGTH_KM']; 
                 result = label
             } 
-             if (riverDataset_select.getValue() === 'DATASET3') {
+            
+             if (riverDataset_select0.getValue() === null || riverDataset_select0.getValue() === 'WWF_FFR') {
+                riverDataset_select0.setValue('WWF_FFR')
+                var label = 'FreeFlowingRivers'
+                var resultSS = findObjectByKey(WWF_river_item, 'label', label);
+                dreLine_select0.setValue(resultSS.value)
                 var properties1 = ['LENGTH_KM']; 
-                var value= dreLine_select.getValue()
+                result = label
+            } 
+             if (riverDataset_select0.getValue() === 'HydroRIVER') {
+                var properties1 = ['LENGTH_KM']; 
+                var value= dreLine_select0.getValue()
+                //print('VALUEEE', value)
+                var result = findObjectByKey(HydroRiver_item, 'value', value);  
+                result = result.label                  
+                
+            }    
+            
+            if (riverDataset_select0.getValue() === 'DATASET3') {
+                var properties1 = ['LENGTH_KM']; 
+                var value= dreLine_select0.getValue()
                 //print('VALUEEE', value)
                 var result = findObjectByKey(Other_river_item, 'value', value);  
                 result = result.label                  
                 
-            }     
+            }   
             
-            if (riverDataset_select.getValue() === 'LOCAL' & dreLine_select.getValue() != null) {
+            if (riverDataset_select0.getValue() === 'LOCAL' & dreLine_select0.getValue() != null) {
               properties1 = ['Shape_Leng'];
-              var value= dreLine_select.getValue()
+              var value= dreLine_select0.getValue()
               //print('VALUEEE', value)
               var result = findObjectByKey(dreLine_items, 'value', value);  
               result = result.label            
             }
-            
-            //print('activeRiverLayer :',activeRiverLayer)
-            RIVER_LAYER = ui.Map.Layer(activeRiverLayer, {}, result);
-            mainMap.layers().set(12, RIVER_LAYER);                                        
-            
-            var clicked_Gaul0=Gaul_0.filterBounds(clicked_basin_geom).sort('ADM0_NAME');
+
+           var clicked_Gaul0=Gaul_0.filterBounds(clicked_basin_geom).sort('ADM0_NAME');
             //var clicked_basin_Gaul0_F = ee.Feature(clicked_Gaul0.first());
             //var clicked_basin_Gaul0_name = clicked_basin_Gaul0_F.get('ADM0_NAME');
             //var clicked_basin_Gaul0_geom = clicked_basin_Gaul0_F.geometry();
@@ -1398,8 +1651,9 @@ basinInspectButton.onClick(function() {
             //BASIN CHARACTERISTICS
             //var area_m2= ee.Number.parse(clicked_basin_geom.area(10))
             var pi=ee.Number.expression('Math.PI', null);
-            area_km = ee.Number(clicked_basin_geom.area().divide(1000 * 1000))
-            //area_km= ee.Number(clicked_basin.get('SUB_AREA'))
+            
+            //area_km = ee.Number(clicked_basin_geom.area().divide(1000 * 1000))
+            area_km= ee.Number(clicked_basin.get('SUB_AREA'))
             perimeter = ee.Number(clicked_basin_geom.perimeter().divide(1000));
             var area_kmC= perimeter.pow(2).divide(pi.multiply(ee.Number(4)));
             var basinLength = ee.Number(1.312).multiply(area_km.pow(0.568));
@@ -1447,7 +1701,7 @@ basinInspectButton.onClick(function() {
             var tableToFC1= ee.FeatureCollection(ee.Feature(null, ParameterList1))
             var polyOut1 = tableToFC1.select(['.*'],null,false);
             
-            var str1 = ee.String('Watershed Geometric Parameters')
+            var str1 = ee.String('Watershed Geometric Characteristics')
     
             str1.evaluate(function(result){
                   resultPanelDetailsPanel.widgets().set(widgetNumber++, ui.Label({
@@ -1463,7 +1717,7 @@ basinInspectButton.onClick(function() {
                 var chart1 = ui.Chart(dataTableClient).setChartType('Table').setOptions({
                 title: 'Watershed Geometry Characteristics)',
                 //NumberFormat:'#.###'
-                format:'#.###',
+                format:'#.##',
                 showRowNumber: true,
                 });
                 //print(chart)
@@ -1476,7 +1730,7 @@ basinInspectButton.onClick(function() {
                   
                   var kml_url = clicked_basin_fc.getDownloadURL({ 
                         format: 'kml',
-                        filename: 'kml_export'
+                        filename: 'Watershed_Boundaries_kml'
                       });            
                   
                   resultPanelDetailsPanel.widgets().set(widgetNumber++, ui.Label({
@@ -1487,7 +1741,22 @@ basinInspectButton.onClick(function() {
                 
             //resultPanelDetailsPanel.add(chart1)
             });
+            ////
+            var streams = activeRiverLayer
+                        // Reduce the region. The region parameter is the Feature geometry.
+            var meanDictionary = elevImg.reduceRegion({
+              reducer: ee.Reducer.minMax(),
+              geometry: streams.geometry(),
+              scale: 30,
+              maxPixels: 1e9
+            });
             
+            // The result is a Dictionary.  Print it.
+            //print('AAAAAAAAA',meanDictionary);  
+            
+            var minStreamElevation = ee.Number(meanDictionary.get('b1_min'))
+            var maxStreamElevation = ee.Number(meanDictionary.get('b1_max'))
+            //print(imgMin); 
           
             //IMAGE STAT
             var reducers = ee.Reducer.mean()
@@ -1516,24 +1785,28 @@ basinInspectButton.onClick(function() {
             var imgStdDev = ee.Number(stats.get('b1_stdDev'))
             var variance = ee.Number(stats.get('b1_variance'))
             
-            basinRelief= imgMax.subtract(imgMin)
+            //basinRelief= imgMax.subtract(imgMin)
+            basinRelief= maxStreamElevation.subtract(minStreamElevation)
 
             var reliefRatio= basinRelief.divide(basinLength)
             var relativeRelief= (basinRelief.multiply(100)).divide(perimeter)
             var dissectionIndex=basinRelief.divide(imgMax)
 
-    //////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////o
             var ParameterList3 = ee.Dictionary([
                             "Relief Ratio", reliefRatio,  
                             "Relative Relief", relativeRelief,
                             "Dissection Index", dissectionIndex,
                             "Basin Relief", basinRelief,
-                            "Mean", imgMean,
-                            "Max", imgMax,
-                            "Min", imgMin,
-                            "Median", imgMedian,
-                            "StdDev", imgStdDev,
-                            "Variance", variance
+                            "Relief Mean", imgMean,
+                            "Relief Max", imgMax,
+                            "Relief Min", imgMin,
+                            "Relief Median", imgMedian,
+                            "Relief StdDev", imgStdDev,
+                            "Relief Variance", variance,
+                            "Min Stream Elevation",minStreamElevation,
+                            "Max Stream Elevation",maxStreamElevation,
+                            
             ]);      
             
             var keys3 = ee.List(ParameterList3.keys()).reverse()
@@ -1558,12 +1831,10 @@ basinInspectButton.onClick(function() {
     
     ////////////////////////
     
-    
             var str3 = ui.Label({
                     value: 'Watershed Relief Characteristics',
                     style: detailsPanelTitleStyle
                   });
-
 
             dataTableServer3.evaluate(function(dataTableClient) {
               
@@ -1571,7 +1842,7 @@ basinInspectButton.onClick(function() {
                 var chart3 = ui.Chart(dataTableClient).setChartType('Table').setOptions({
                 title: 'Watershed Characteristics)',
                 //NumberFormat:'#.###'
-                format:'#.###',
+                format:'#.##',
                 showRowNumber: true,
                 });
                 //print(chart)
@@ -1582,7 +1853,139 @@ basinInspectButton.onClick(function() {
             resultPanelDetailsPanel.widgets().set(widgetNumber++, download_link);
             //resultPanelDetailsPanel.add(chart2)
             });
+            
+            
+            //////////////////
+                        //print('activeRiverLayer :',activeRiverLayer)
+            RIVER_LAYER = ui.Map.Layer(activeRiverLayer, {}, result);
+            mainMap.layers().set(12, RIVER_LAYER);    
+            
+            var streams = activeRiverLayer
+
+            var size = streams.size()
+            
+            //print('XXXXXXXXX', size)
+            var last_feature = streams.toList(size).get(-1)
+            
+            var fff1 = toLineString(streams);
+            fff1=fff1.geometry()
+            var multiLineStringLength = fff1.length();
+
+            var numOfStreams= streams.size()
+            var sums = streams
+                .filter(ee.Filter.notNull(properties1))
+                .reduceColumns({
+                  reducer: ee.Reducer.sum(),
+                  selectors: properties1
+                });
+            
+            // Print the resultant Dictionary.
+            //print('sum of',sums.get('sum'));
+            var sumOfStreams= ee.Number.parse(sums.get('sum'));
+            //print(sumOfStreams)
+            
+            var textureRatioLabel = ui.Label({
+            value: 'Please wait...',
+            style: detailsPanelTextStyle
+            })
+            //print('son perimeter',perimeter)
+            
+            var pi=ee.Number.expression('Math.PI', null);
+            var streamFrequency = numOfStreams.divide(area_km)
+            //var drainageTexture= numOfStreams.divide(perimeter)
+            var drainageDensity = sumOfStreams.divide(area_km)
+            var drainageIntensity = streamFrequency.divide(drainageDensity)
+            var infiltrationNumber=drainageDensity.multiply(streamFrequency)
+            var lengthOfOverlandFlow=ee.Number(1).divide(drainageDensity.multiply(ee.Number(2)))
+            var constantOfChannelMaintenance=ee.Number(1).divide(drainageDensity)
+            var lemniscateRatio= perimeter.pow(2).multiply(pi).divide(ee.Number(4).multiply(area_km))
+            var ruggednessNumber=(basinRelief.multiply(drainageDensity))
+            var textureRatio= numOfStreams.divide(perimeter)    
+            //(ee.Number(2).divide(basinLength)).multiply((area_km.divide(pi).pow(0.5)));
+            
+        ////////////////////////////////////////////////////////////
+            var ParameterList2= ee.Dictionary([
+                            "Total Number Of Streams(∑Nu)", numOfStreams,
+                            "Total Length Of Stream Orders(∑Lu)",sumOfStreams,
+                            "Stream Frequency", streamFrequency,
+                            //"DrainageTexture", drainageTexture,
+                            "Drainage Density", drainageDensity, 
+                            "Drainage Intensity", drainageIntensity,             
+                            "Infiltration Number", infiltrationNumber,  
+                            "Length Of Overland Flow", lengthOfOverlandFlow,  
+                            "Constant Of Channel Maintenance", constantOfChannelMaintenance,  
+                            "LemniscateRatio", lemniscateRatio,    
+                            "Ruggedness Number", ruggednessNumber, 
+                            //"Length of Selected Segment", selectedSegmentLength,
+                            "Texture Ratio",textureRatio,
+                            //"GEE MultiLineString Length", multiLineStringLength,
+                            
+            ]); 
+            
+            var keys2 = ee.List(ParameterList2.keys()).reverse()
+            var values2=ee.List(ParameterList2.values()).reverse()            
+            var zipped2 = keys2.zip(values2)
+            
+            // Define column names and properties for the DataTable. The order should
+            // correspond to the order in the construction of the 'row' property above.
+            var columnHeader2 = ee.List([[
+              {label: 'Parameter', role: 'data', type: 'string', pattern: 'string'},
+              {label: 'Value', role: 'data', type: 'number', pattern: 'number'},
+            ]]);
+            
+            // Concatenate the column header to the table.
+            var dataTableServer2 = columnHeader2.cat(zipped2);
+            
+            // Use 'evaluate' to transfer the server-side table to the client, define the
+            // chart and print it to the console.    
+            
+            var tableToFC2= ee.FeatureCollection(ee.Feature(null, ParameterList2))
+            var polyOut2 = tableToFC2.select(['.*'],null,false);
+            
+            var str2 = ui.Label({
+                    value: 'Watershed Linear Parameters',
+                    style: detailsPanelTitleStyle
+                  });                
+
                   
+            dataTableServer2.evaluate(function(dataTableClient) {
+                resultPanelDetailsPanel.widgets().set(widgetNumber++, str2);
+                var chart2 = ui.Chart(dataTableClient).setChartType('Table').setOptions({
+                format: '#.##',
+                showRowNumber: true,
+                page:'disable',
+                //allowHtml: true,
+                title: 'Watershed Linear Characteristics)',
+                //NumberFormat:'#.###'
+                });
+                //print(chart)
+            resultPanelDetailsPanel.widgets().set(widgetNumber++, chart2);
+            
+                  download_link = make_download_link(polyOut2,'Download Watershed Geometric Parameters')
+                  //resultPanelDetailsPanel.add(download_link); 
+                  
+                  resultPanelDetailsPanel.widgets().set(widgetNumber++, download_link);             
+            //resultPanelDetailsPanel.add(chart1)
+            
+            
+            var river_kml_url = streams.getDownloadURL({ 
+                  format: 'kml',
+                  filename: 'River_Streams_kml'
+                  });
+            
+            //print('river KML EXPORT LINK',river_kml_url)
+            
+            resultPanelDetailsPanel.widgets().set(widgetNumber++, ui.Label({
+                    //value: widgetNumber+': Click to Download River Streams',
+                    value: 'Click to Download River Streams',
+                    targetUrl: river_kml_url,
+                    style: detailsPanelDStyle
+                  }));    
+            });
+            
+            
+            
+            /////////////////
             activeRiverLayer=ee.FeatureCollection([]);
             
             mainMap.unlisten();   
@@ -1705,7 +2108,7 @@ getRiverParameters.onClick(function() {
     
                     }
 
-                    if (riverDataset_select.getValue() === 'DATASET3') {
+                    if (riverDataset_select.getValue() === 'DATASET3' || riverDataset_select.getValue() === 'HydroRIVER') {
                         var segmentStreamFieldName='HYRIV_ID'
                         var segmentDownStreamFieldName='NEXT_DOWN' //HYBAS_L12
                         //var segmentBasinFieldName='HYBAS_L12'
@@ -1738,13 +2141,13 @@ getRiverParameters.onClick(function() {
                     
                     var selectedSegmentLength=firstSegment.geometry().length().divide(1000)
                     
-                    if (riverDataset_select.getValue() === 'WWF_FFR' ) {
+                    if (riverDataset_select.getValue() === 'WWF_FFR') {
                       var basinStreamObjectIdsList = trainingData.filter(ee.Filter.eq(segmentBasinFieldName, firstSegmentBasinID)).aggregate_array(segmentStreamFieldName)
                       var basinStreamNextdownIdsList = trainingData.filter(ee.Filter.inList(segmentStreamFieldName, basinStreamObjectIdsList)).aggregate_array(segmentDownStreamFieldName)
                     }
                     
     
-                    if (riverDataset_select.getValue() === 'LOCAL' || riverDataset_select.getValue() === 'DATASET3') {
+                    if (riverDataset_select.getValue() === 'LOCAL' || riverDataset_select.getValue() === 'DATASET3' || riverDataset_select.getValue() === 'HydroRIVER') {
                       var basinStreamObjectIdsList = trainingData.aggregate_array(segmentStreamFieldName)
                       var basinStreamNextdownIdsList = trainingData.aggregate_array(segmentDownStreamFieldName)
                       
@@ -1802,7 +2205,7 @@ getRiverParameters.onClick(function() {
                                     var multiLineStringLength = fff1.length();
                                     //print('GEE MultiLineString Length :', multiLineStringLength)
                                     
-                                    if (riverDataset_select.getValue() === 'WWF_FFR' || riverDataset_select.getValue() === 'DATASET3') {
+                                    if (riverDataset_select.getValue() === 'WWF_FFR' || riverDataset_select.getValue() === 'DATASET3' || riverDataset_select.getValue() === 'HydroRIVER') {
                                     var properties = ['LENGTH_KM'];
                                     }
                                     if (riverDataset_select.getValue() === 'LOCAL') {
@@ -1824,7 +2227,7 @@ getRiverParameters.onClick(function() {
     
                                     var river_kml_url = streams.getDownloadURL({ 
                                           format: 'kml',
-                                          filename: 'kml_export'
+                                          filename: 'River_Streams_kml'
                                           });
                                     
                                     //print('river KML EXPORT LINK',river_kml_url)
@@ -1845,7 +2248,6 @@ getRiverParameters.onClick(function() {
                                     
                                     var pi=ee.Number.expression('Math.PI', null);
                                     var streamFrequency = numOfStreams.divide(area_km)
-                                    var drainageTexture= numOfStreams.divide(perimeter)
                                     var drainageDensity = sumOfStreams.divide(area_km)
                                     var drainageIntensity = streamFrequency.divide(drainageDensity)
                                     var infiltrationNumber=drainageDensity.multiply(streamFrequency)
@@ -1858,10 +2260,7 @@ getRiverParameters.onClick(function() {
                                     
                                 ////////////////////////////////////////////////////////////
                                     var ParameterList2= ee.Dictionary([
-                                                    "Total Number Of Streams(∑Nu)", numOfStreams,
-                                                    "Total Length Of Stream Orders(∑Lu)",sumOfStreams,
                                                     "Stream Frequency", streamFrequency,
-                                                    "DrainageTexture", drainageTexture,
                                                     "Drainage Density", drainageDensity, 
                                                     "Drainage Intensity", drainageIntensity,             
                                                     "Infiltration Number", infiltrationNumber,  
@@ -1870,7 +2269,9 @@ getRiverParameters.onClick(function() {
                                                     "LemniscateRatio", lemniscateRatio,    
                                                     "Ruggedness Number", ruggednessNumber, 
                                                     "Length of Selected Segment", selectedSegmentLength,
-                                                    "Texture Ratio",textureRatio,
+                                                    "Drainage Texture Ratio",textureRatio,
+                                                    "Total Number Of Streams(∑Nu)", numOfStreams,
+                                                    "Total Length Of Stream Orders(∑Lu)",sumOfStreams,
                                                     //"GEE MultiLineString Length", multiLineStringLength,
                                                     
                                     ]); 
@@ -1904,7 +2305,7 @@ getRiverParameters.onClick(function() {
                                     dataTableServer2.evaluate(function(dataTableClient) {
                                         resultPanelDetailsPanel.widgets().set(widgetNumber++, str2);
                                         var chart2 = ui.Chart(dataTableClient).setChartType('Table').setOptions({
-                                        format: '#.###%',
+                                        format: '#.##',
                                         showRowNumber: true,
                                         page:'disable',
                                         //allowHtml: true,
@@ -1934,12 +2335,12 @@ getRiverParameters.onClick(function() {
 ////////////////////////////////
 
     ////////////////////// test bifurcation
-if (riverDataset_select.getValue() === 'LOCAL'|| riverDataset_select.getValue() === 'DATASET3') {
+if (riverDataset_select.getValue() === 'LOCAL' || riverDataset_select.getValue() === 'HydroRIVER') {
     var uniqueKS= 'OBJECTID';
     var straCode= 'grid_code';
     var lengthCode ='Shape_Leng';
     
-    if (riverDataset_select.getValue() === 'DATASET3') {
+    if (riverDataset_select.getValue() === 'DATASET3' || riverDataset_select.getValue() === 'HydroRIVER' ) {
 
       uniqueKS= 'HYRIV_ID';
       straCode= 'ORD_STRA';
@@ -2052,7 +2453,7 @@ if (riverDataset_select.getValue() === 'LOCAL'|| riverDataset_select.getValue() 
     RhoCoefficient.evaluate(function(result){
       resultPanelDetailsPanel.widgets().set(widgetNumber++, ui.Label({
         //value: widgetNumber+': Mean bifurcation ratio (Bfr) : ' +  bfrMean.toFixed(3), //ERROR
-        value: widgetNumber+': Mean bifurcation ratio (Bfr) : ' +  bfrMean.toFixed(3),
+        value: widgetNumber+': Mean bifurcation ratio (Rbm) : ' +  bfrMean.toFixed(3),
         style: detailsPanelTextStyle
       }));
   
@@ -2065,9 +2466,6 @@ if (riverDataset_select.getValue() === 'LOCAL'|| riverDataset_select.getValue() 
         value: widgetNumber +': Rho Coefficient : '  + result.toFixed(3),
         style: detailsPanelTextStyle
       }));
-      
-      
-      
       
     })                  
 
@@ -2091,7 +2489,6 @@ if (riverDataset_select.getValue() === 'LOCAL'|| riverDataset_select.getValue() 
     var coefList = ee.Array(linearRegression.get('coefficients')).toList();
     //print('coefList :',coefList)
 
-    // Gather the SWIR1 values from the point sample into a list of lists.
     var props = ee.List(['Su','logNu']);
     var regressionVarsList = ee.List(features.reduceColumns({
       reducer: ee.Reducer.toList().repeat(props.size()),
@@ -2144,10 +2541,10 @@ var dict4 = {Caption: 'Weighed mean stream length ratio (Luwm) :',
 var dict5 = {Caption: 'Rho Coefficient :',
               count: RhoCoefficient};
               
-var dict6 = {Caption: 'Mean bifurcation ratio (Bfr) :',
+var dict6 = {Caption: 'Mean bifurcation ratio (Rbm) :',
               count: bfrMean};
               
-var dict7 = {Caption: 'Stream length ratio (Lur) :',
+var dict7 = {Caption: 'Mean Stream length ratio (Lurm) :',
               count: LurMean};
     
 var subCaption1 = ee.Feature(null, dict1);
@@ -2194,7 +2591,7 @@ print ('Merged Features :',mergedTable)
       bfrChart.setChartType('Table');
       bfrChart.setOptions({
         allowHtml: true,
-        format: '#.###',
+        format: '#.##',
         //format:'#.###',
         page:'disable',
         //pageSize: 5 //{format: 'decimal'}
@@ -2260,14 +2657,15 @@ print('newFeatures ----',DataRenamed)
           vAxis: {'title': 'log Nu'},
           
           trendlines: { 0: {showR2: true, visibleInLegend: true} , 
-                        1: {showR2: true, visibleInLegend: true}},
+                        //1: {showR2: true, visibleInLegend: true}
+                      },
         series: {
           0: {
             pointSize: 3,
             dataOpacity: 0.5,
           },
           1: {
-            pointSize: 0,
+            pointSize: 5,
             lineWidth: 2,
           }
         }
@@ -2277,32 +2675,32 @@ print('newFeatures ----',DataRenamed)
 
   
 
-hRb.evaluate(function(result){
-  
-    resultPanelDetailsPanel.widgets().set(widgetNumber++, hortonChart); 
-    
-    resultPanelDetailsPanel.widgets().set(widgetNumber++, ui.Label({
-      value: widgetNumber+': Bfr from Horton Diagram: ' +  result.toFixed(3),
-      style: detailsPanelTextStyle
-    }));
-    
-
-    yInt.evaluate(function(result){                
+    hRb.evaluate(function(result){
+      
+        resultPanelDetailsPanel.widgets().set(widgetNumber++, hortonChart); 
+        
         resultPanelDetailsPanel.widgets().set(widgetNumber++, ui.Label({
-          value: widgetNumber+': y-intercept: : ' +  result.toFixed(3),
+          value: widgetNumber+': Mean bifurcation ratio (Rbm) from Horton Diagram: ' +  result.toFixed(3),
           style: detailsPanelTextStyle
         }));
-    })
+        
     
-    slope.evaluate(function(result){   
-        resultPanelDetailsPanel.widgets().set(widgetNumber++, ui.Label({
-          value: widgetNumber+': Slope: : ' +  result.toFixed(3),
-          style: detailsPanelTextStyle
-        }));
-})      
-    
-    
-})    
+        yInt.evaluate(function(result){                
+            resultPanelDetailsPanel.widgets().set(widgetNumber++, ui.Label({
+              value: widgetNumber+': y-intercept: : ' +  result.toFixed(3),
+              style: detailsPanelTextStyle
+            }));
+        })
+        
+        slope.evaluate(function(result){   
+            resultPanelDetailsPanel.widgets().set(widgetNumber++, ui.Label({
+              value: widgetNumber+': Slope: : ' +  result.toFixed(3),
+              style: detailsPanelTextStyle
+            }));
+    })      
+        
+        
+    })    
     //print('y-intercept:', yInt);
     //print('Slope:', slope);
     //print('Rb :', ee.Number(10).pow(ee.Number(absSlope)));    
@@ -2453,7 +2851,7 @@ riverTraceButton.onClick(function() {
           
                     }
                     
-                    if (riverDataset_select.getValue() === 'DATASET3') {
+                    if (riverDataset_select.getValue() === 'DATASET3' || riverDataset_select.getValue() === 'HydroRIVER') {
                         var segmentStreamFieldName='HYRIV_ID'
                         var segmentDownStreamFieldName='NEXT_DOWN' //HYBAS_L12
                         //var segmentBasinFieldName='HYBAS_L12'
@@ -2481,7 +2879,7 @@ riverTraceButton.onClick(function() {
                       var basinStreamNextdownIdsList = trainingData.filter(ee.Filter.inList(segmentStreamFieldName, basinStreamObjectIdsList)).aggregate_array(segmentDownStreamFieldName)
                     }                    
     
-                    if (riverDataset_select.getValue() === 'LOCAL' || riverDataset_select.getValue() === 'DATASET3') {
+                    if (riverDataset_select.getValue() === 'LOCAL' || riverDataset_select.getValue() === 'DATASET3' || riverDataset_select.getValue() === 'HydroRIVER') {
                       var basinStreamObjectIdsList = trainingData.aggregate_array(segmentStreamFieldName)
                       var basinStreamNextdownIdsList = trainingData.aggregate_array(segmentDownStreamFieldName)
                       
@@ -2517,10 +2915,12 @@ riverTraceButton.onClick(function() {
                                     
                                     var fff1 = toLineString(streams);
                                     fff1=fff1.geometry()
-                                    var multiLineStringLength = fff1.length();
-                                    //print('GEE multiLineStringLength', multiLineStringLength)
                                     
-                                    if (riverDataset_select.getValue() === 'WWF_FFR' || riverDataset_select.getValue() === 'DATASET3') {
+                                    print('fff1',fff1)
+                                    var multiLineStringLength = fff1.length();
+                                    print('GEE multiLineStringLength', multiLineStringLength)
+                                    
+                                    if (riverDataset_select.getValue() === 'WWF_FFR' || riverDataset_select.getValue() === 'DATASET3' || riverDataset_select.getValue() === 'HydroRIVER') {
                                     var properties = ['LENGTH_KM']; //LENGTH_KM
                                     }
                                     if (riverDataset_select.getValue() === 'LOCAL') {
@@ -2528,7 +2928,9 @@ riverTraceButton.onClick(function() {
                                     }                
                                     
                                     var numOfStreams= streams.size()
-                                    //print(streams)
+                                    
+                                    print('streams.size ',streams.size())
+                                    
                                     var sums = streams
                                         .filter(ee.Filter.notNull(properties))
                                         .reduceColumns({
@@ -2561,7 +2963,7 @@ riverTraceButton.onClick(function() {
                                 
                                     var river_kml_url = streams.getDownloadURL({ 
                                           format: 'kml',
-                                          filename: 'kml_export'
+                                          filename: 'Downstream_kml'
                                           });
                                     //print('river KML EXPORT LINK',river_kml_url)
     
@@ -2648,7 +3050,7 @@ riverTraceButton.onClick(function() {
                                     var multiLineStringLength = fff1.length();
                                     //print('GEE MultiLineString Length :', multiLineStringLength)
                                     
-                                    if (riverDataset_select.getValue() === 'WWF_FFR' || riverDataset_select.getValue() === 'DATASET3') {
+                                    if (riverDataset_select.getValue() === 'WWF_FFR' || riverDataset_select.getValue() === 'DATASET3' || riverDataset_select.getValue() === 'HydroRIVER') {
                                     var properties = ['LENGTH_KM'];
                                     }
                                     if (riverDataset_select.getValue() === 'LOCAL') {
@@ -2670,7 +3072,7 @@ riverTraceButton.onClick(function() {
     
                                     var river_kml_url = streams.getDownloadURL({ 
                                           format: 'kml',
-                                          filename: 'kml_export'
+                                          filename: 'Upstreams_kml'
                                           });
                                     print('river KML EXPORT LINK',river_kml_url)
                                     
@@ -2749,10 +3151,11 @@ admin0Select.onChange(function(value, widget) {
   ADM2_LAYER=ui.Map.Layer(null,null,null,false)
 
   //reset ui selects
-  resetUiSelects()
+  resetUiSelects1()
 
   admin1Select.setPlaceholder('please wait..')
   admin2Select.setPlaceholder('Select a state first..')
+  basinDataset_select.setValue('WWF_HYDROSHEDS')
   var admin0Value = admin0Select.getValue()
 
   if (admin0Value === 'United States of America') {
@@ -2777,13 +3180,21 @@ admin0Select.onChange(function(value, widget) {
   mainMap.layers().set(7, ADM1_LAYER);
   //mainMap.layers().insert(4, ADM1_LAYER)
   mainMap.layers().set(8, ADM2_LAYER);
-  
+  //print(drawBoundsAOI)
+
   var admin1Names = Gaul_2.filter(ee.Filter.eq('ADM0_NAME', value)).aggregate_array('ADM1_NAME')
   .sort()
   .distinct()
 
   // Use evaluate() to not block the UI
+
+                  aoi_kml_url = drawBoundsAOI.getDownloadURL({ 
+                  format: 'kml',
+                  filename: 'AOI_Boundaries_kml'
+                  });            
+
   admin1Names.evaluate(function(items){
+
     admin1Select.setPlaceholder('selet a state or province')
     admin1Select.items().reset(items)
     // Now that we have items, enable the menu
@@ -2791,6 +3202,13 @@ admin0Select.onChange(function(value, widget) {
     activeBorder1='Active AOI Border: '+ admin0Value
     mainSubPanel_bottom_bar_label1.setValue(activeBorder1)
     })
+    
+      
+  resultPanelDetailsPanel.widgets().set(widgetNumber, ui.Label({
+      value: 'Click to Download AOI Boundaries of '+admin0Value,
+      targetUrl: aoi_kml_url,
+      style: detailsPanelDStyle
+    }));
 
 })
 
@@ -2803,10 +3221,11 @@ admin1Select.onChange(function(value, widget) {
   mainMap.layers().set(8, ADM2_LAYER);
 
   //reset ui selects
-  resetUiSelects()
+  resetUiSelects1()
 
   //mainMap.layers().remove(mainMap.layers().get(4));
   admin2Select.setPlaceholder('please wait..')
+
   var admin0Value = admin0Select.getValue()
   //var filtered1 = Gaul_1.filter(ee.Filter(ee.Filter.eq('ADM1_NAME',admin1Value)))
   
@@ -2817,9 +3236,9 @@ admin1Select.onChange(function(value, widget) {
   mainMap.centerObject(filtered1)
   //inMap.addLayer(filtered1, {color: 'yellow'}, admin1Value,true,0.2)
   
-  ADM1_LAYER = ui.Map.Layer(filtered1, {color: 'yellow'},value,true,0.2);
+  ADM1_LAYER = ui.Map.Layer(filtered1, {color: 'red'},value,true,0.8);
   mainMap.layers().set(7, ADM1_LAYER);
-  
+
     var admin2Names = Gaul_2
     .filter(ee.Filter.eq('ADM1_NAME', value))
     .aggregate_array('ADM2_NAME')
@@ -2834,6 +3253,19 @@ admin1Select.onChange(function(value, widget) {
 
   activeBorder1= 'Active AOI Border: '+ admin0Value + ',' + value
   mainSubPanel_bottom_bar_label1.setValue(activeBorder1)
+  
+    
+  aoi_kml_url = drawBoundsAOI.getDownloadURL({ 
+    format: 'kml',
+    filename: 'AOI_Boundaries_kml'
+  });            
+
+  resultPanelDetailsPanel.widgets().set(widgetNumber, ui.Label({
+      value: 'Click to Download AOI Boundaries of '+admin0Value + ',' + value,
+      targetUrl: aoi_kml_url,
+      style: detailsPanelDStyle
+    }));
+  
 })
 
 admin2Select.onChange(function(value, widget) {
@@ -2847,7 +3279,7 @@ admin2Select.onChange(function(value, widget) {
   var admin2Value = value
 
   //reset ui selects
-  resetUiSelects()
+  resetUiSelects1()
 
   // Some regions do not have admin2 values
   if (admin2Value == 'Area without administration at 2nd level') {
@@ -2863,11 +3295,21 @@ admin2Select.onChange(function(value, widget) {
   mainSubPanel_bottom_bar_label1.setValue(activeBorder1)
   
   drawBoundsAOI=filtered3
+                        aoi_kml_url = drawBoundsAOI.getDownloadURL({ 
+                        format: 'kml',
+                        filename: 'AOI_Boundaries_kml'
+                      });            
+                  
+                  resultPanelDetailsPanel.widgets().set(widgetNumber, ui.Label({
+                          value: 'Click to Download AOI Boundaries of '+result,
+                          targetUrl: aoi_kml_url,
+                          style: detailsPanelDStyle
+                        }));
   
   //Map.clear()
   mainMap.centerObject(filtered3)
   
-  ADM2_LAYER = ui.Map.Layer(filtered3, {color: 'blue'},value,true,0.3);
+  ADM2_LAYER = ui.Map.Layer(filtered3, {color: 'blue'},value,true,0.5);
   mainMap.layers().set(8, ADM2_LAYER);
   //mainMap.addLayer(filtered3, {color: 'blue'}, result, true,0.3)
 })
@@ -2888,7 +3330,7 @@ continentSelect.onChange(function(value, widget) {
   //removeLayer(ADM0_LAYER)
 
   //reset ui selects
-  resetUiSelects()
+  resetUiSelects1()
   resetUiSelects2()
   
   admin0Select.setPlaceholder('Select a country')
@@ -2898,6 +3340,16 @@ continentSelect.onChange(function(value, widget) {
   //filtered0 =filtered0.geometry().simplify(10000)
   //var filtered1 = ee.Feature(filtered0)
   drawBoundsAOI=filtered0
+                        aoi_kml_url = drawBoundsAOI.getDownloadURL({ 
+                        format: 'kml',
+                        filename: 'AOI_Boundaries_kml'
+                      });            
+                  
+                  resultPanelDetailsPanel.widgets().set(widgetNumber++, ui.Label({
+                          value: 'Click to Download AOI Boundaries'+value,
+                          targetUrl: aoi_kml_url,
+                          style: detailsPanelDStyle
+                        }));
   
   mainMap.centerObject(filtered0)
     
@@ -3075,7 +3527,7 @@ function upLinkedList(code, list) {
   return upList
   }
 
-function resetUiSelects() {
+function resetUiSelects1() {
   
   resultPanelDetailsPanel.clear()
   
@@ -3198,6 +3650,18 @@ var outline = empty.paint({featureCollection: layer, color: 1, width: 3});
 return outline
 }
 //Map.addLayer(drawPolygonEdges(table), {palette: 'FF0000'}, 'edges');
+
+
+function maskInside(image, geometry) {
+  var mask = ee.Image.constant(1).clip(geometry).mask().not()
+  return image.updateMask(mask)
+}
+
+function maskOutside(image, geometry) {
+  var mask = ee.Image.constant(1).clip(geometry).mask()//.not()
+  return image.updateMask(mask)
+}
+
 
 /*
 print(image.reduceRegion({
