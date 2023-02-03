@@ -11,7 +11,7 @@ Morphometric Analysis in Google Earth Engine: An online interactive web-based ap
 
 For researchers focusing on watershed and streams morphometric analysis, extracting the morphometric parameters of a watershed and streams is a time-consuming process and requires computer hardware, GIS software resources and GIS expertise. Since river basins or watersheds are different in size and formation, terrain processing should be redone for each basin to obtain morphometric characteristics. 
 
-This application has been developed on the GEE platform where morphometric characteristics of watersheds and streams over the world can be obtained.
+This application has been developed on the GEE platform where morphometric characteristics of watersheds and streams over the world can be obtained. This application is best viewed in 1920x1080 resolution
 
 _**Important Note: Access to Google Earth Engine is currently only available to
 registered users.**_
