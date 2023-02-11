@@ -1,12 +1,12 @@
 /*
-Morphometric Analysis in Google Earth Engine: An online interactive web-based application for global-scale analysis 
+Morphometric analysis in Google Earth Engine: An online interactive web-based application for global-scale analysis
 Author: Mehmet Cengiz Arslanoğlu (mynet34@gmail.com)
 
 This code is free and open. 
 By using this code and any data derived with it, you agree to cite the following reference in any publications derived from them:
 
-Citation: Sener, M., Arslanoğlu, M.C., 2022. Morphometric Analysis in Google Earth Engine: An online interactive web-based application for global-scale analysis. 
-Environmental Modelling & Software, 
+Citation: Mehmet Şener, Mehmet Cengiz Arslanoğlu,Morphometric analysis in Google Earth Engine: An online interactive web-based application for global-scale analysis,
+Environmental Modelling & Software, 2023, 105640, ISSN 1364-8152, https://doi.org/10.1016/j.envsoft.2023.105640.
 */
 
 var defaultCountry = "Turkey"
@@ -486,7 +486,7 @@ layout: ui.Panel.Layout.flow('horizontal')
 //print(ui.Label('Here is a:\nnew line', {whiteSpace: 'pre'}));
 head_title_Panel.add(ui.Label({
     value: 'NKU-MAN Morphometric Analysis for Watersheds & Streams',
-    targetUrl: 'http://www.nku.edu.tr/',
+    //targetUrl: 'http://www.nku.edu.tr/',
     style: {
     color: 'FFF', fontSize: '16px', 
     backgroundColor: 'rgba(0,0,0,0)',
@@ -509,7 +509,7 @@ layout: ui.Panel.Layout.flow('horizontal')
 
 head_logo_Panel.add(logo_thumbnail)
   
-head_logo_Panel.add(ui.Label('\nCitation: Mehmet Şener, Mehmet Cengiz Arslanoğlu, \nMorphometric Analysis in Google Earth Engine: \nAn online interactive web-based application for global-scale analysis.\nEnvironmental Modelling & Software,\n2023, 105640, ISSN 1364-8152, https://doi.org/10.1016/j.envsoft.2023.105640.', 
+head_logo_Panel.add(ui.Label('\nCitation: Mehmet Şener, Mehmet Cengiz Arslanoğlu, \nMorphometric Analysis in Google Earth Engine: \nAn online interactive web-based application for global-scale analysis.\nEnvironmental Modelling & Software,2023, 105640, \nISSN 1364-8152, https://doi.org/10.1016/j.envsoft.2023.105640.', 
   {
     color: 'white', 
     backgroundColor: 'rgba(0,0,0,0)',
