@@ -1,7 +1,7 @@
 NKU-MAN
 =======================
 
-Morphometric Analysis in Google Earth Engine: An online interactive web-based application for global-scale analysis.
+[Morphometric Analysis in Google Earth Engine: An online interactive web-based application for global-scale analysis.](https://www.sciencedirect.com/science/article/pii/S1364815223000269)
 
 
 [NKU-MAN Application](https://mynet34.users.earthengine.app/view/nku-man)
