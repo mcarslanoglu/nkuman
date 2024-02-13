@@ -5,7 +5,10 @@ NKU-MAN
 
 [NKU-MAN Application](https://mynet34.users.earthengine.app/view/nku-man)
 
+[NKU-MAN User Guide](https://github.com/mcarslanoglu/nkuman/blob/main/THE_NKU-MAN_USER_GUIDE.docx)
+
 [NKU-MAN GEE JavaScript Code](https://github.com/mcarslanoglu/nkuman/blob/main/nku-man_gee_code.js)
+
 
 
 ## Introduction:
