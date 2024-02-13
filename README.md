@@ -9,7 +9,7 @@ NKU-MAN
 
 [NKU-MAN GEE JavaScript Code](https://github.com/mcarslanoglu/nkuman/blob/main/nku-man_gee_code.js)
 
-
+For contributions and comments: mehmet.arslanoglu@batman.edu.tr, mynet34@gmail.com
 
 ## Introduction:
 
